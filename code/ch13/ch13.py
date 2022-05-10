@@ -203,14 +203,14 @@ lrmodel = TfLinreg(x_dim=X_train.shape[1], learning_rate=0.01)
 def train_linreg(sess, model, X_train, y_train, num_epochs=10):
     ## initialiaze all variables: W & b
     sess.run(model.init_op)
-    
+
     training_costs = []
-    for i in range(num_epochs):
+    for _ in range(num_epochs):
         _, cost = sess.run([model.optimizer, model.mean_cost], 
                            feed_dict={model.X:X_train, 
                                       model.y:y_train})
         training_costs.append(cost)
-        
+
     return training_costs
 
 
@@ -234,9 +234,7 @@ plt.show()
 
 
 def predict_linreg(sess, model, X_test):
-    y_pred = sess.run(model.z_net, 
-                      feed_dict={model.X:X_test})
-    return y_pred
+    return sess.run(model.z_net, feed_dict={model.X: X_test})
 
 
 
@@ -268,11 +266,7 @@ plt.show()
 # unzips mnist
 
 
-if (sys.version_info > (3, 0)):
-    writemode = 'wb'
-else:
-    writemode = 'w'
-
+writemode = 'wb' if (sys.version_info > (3, 0)) else 'w'
 zipped_mnist = [f for f in os.listdir('./') if f.endswith('ubyte.gz')]
 for z in zipped_mnist:
     with gzip.GzipFile(z, mode='rb') as decompressed, open(z[:-3], writemode) as outfile:
@@ -284,11 +278,9 @@ for z in zipped_mnist:
  
 def load_mnist(path, kind='train'):
     """Load MNIST data from `path`"""
-    labels_path = os.path.join(path, 
-                               '%s-labels-idx1-ubyte' % kind)
-    images_path = os.path.join(path, 
-                               '%s-images-idx3-ubyte' % kind)
-        
+    labels_path = os.path.join(path, f'{kind}-labels-idx1-ubyte')
+    images_path = os.path.join(path, f'{kind}-images-idx3-ubyte')
+
     with open(labels_path, 'rb') as lbpath:
         magic, n = struct.unpack('>II', 
                                  lbpath.read(8))
@@ -301,7 +293,7 @@ def load_mnist(path, kind='train'):
         images = np.fromfile(imgpath, 
                              dtype=np.uint8).reshape(len(labels), 784)
         images = ((images / 255.) - .5) * 2
- 
+
     return images, labels
 
 
@@ -409,8 +401,8 @@ sess.run(init_op)
 
 ## 50 epochs of training:
 training_costs = []
+training_loss = []
 for epoch in range(50):
-    training_loss = []
     batch_generator = create_batch_generator(
             X_train_centered, y_train, 
             batch_size=64)
@@ -432,7 +424,7 @@ for epoch in range(50):
 feed = {tf_x : X_test_centered}
 y_pred = sess.run(predictions['classes'], 
                   feed_dict=feed)
- 
+
 print('Test Accuracy: %.2f%%' % (
       100*np.sum(y_pred == y_test)/y_test.shape[0]))
 
@@ -454,9 +446,9 @@ std_val = np.std(X_train)
 
 X_train_centered = (X_train - mean_vals)/std_val
 X_test_centered = (X_test - mean_vals)/std_val
- 
+
 del X_train, X_test
- 
+
 print(X_train_centered.shape, y_train.shape)
 
 print(X_test_centered.shape, y_test.shape)
@@ -484,7 +476,7 @@ tf.set_random_seed(123)
 
 
 y_train_onehot = keras.utils.to_categorical(y_train)
- 
+
 print('First 3 labels: ', y_train[:3])
 print('\nFirst 3 labels (one-hot):\n', y_train_onehot[:3])
 
@@ -543,7 +535,7 @@ print('First 3 predictions: ', y_train_pred[:3])
 
 y_train_pred = model.predict_classes(X_train_centered, 
                                      verbose=0)
-correct_preds = np.sum(y_train == y_train_pred, axis=0) 
+correct_preds = np.sum(y_train == y_train_pred, axis=0)
 train_acc = correct_preds / y_train.shape[0]
 
 print('First 3 predictions: ', y_train_pred[:3])
@@ -555,7 +547,7 @@ print('Training accuracy: %.2f%%' % (train_acc * 100))
 y_test_pred = model.predict_classes(X_test_centered, 
                                     verbose=0)
 
-correct_preds = np.sum(y_test == y_test_pred, axis=0) 
+correct_preds = np.sum(y_test == y_test_pred, axis=0)
 test_acc = correct_preds / y_test.shape[0]
 print('Test accuracy: %.2f%%' % (test_acc * 100))
 
